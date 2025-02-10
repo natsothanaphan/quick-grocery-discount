@@ -1,0 +1,40 @@
+.grocery-form {
+  margin: 12px;
+}
+
+/* Style each row (div) as a flex container */
+.grocery-form div {
+  display: flex;
+  align-items: center;
+}
+
+/* Specifically center the last div (the button row) */
+.grocery-form div:last-child {
+    justify-content: center;
+}
+
+/* Give the label a fixed width and right-align its text */
+.grocery-form label {
+  width: 80px; /* adjust width as needed */
+  text-align: right;
+  margin-right: 8px;
+}
+
+/* Allow the input to take the remaining space */
+.grocery-form input {
+  flex: 1;
+}
+
+/* Add 4px margin to the buttons */
+.grocery-form button {
+  margin: 4px;
+}
+
+/* New hover styles for the form buttons */
+.submit-button:hover {
+  color: dodgerblue;
+}
+
+.cancel-button:hover {
+  color: firebrick;
+}

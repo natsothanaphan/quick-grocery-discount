@@ -1,0 +1,49 @@
+.grocery-table {
+  margin: 12px;
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.grocery-table th,
+.grocery-table td {
+  padding: 4px 8px;
+  border: 1px solid #ccc;
+}
+
+.grocery-table th.sortable {
+  cursor: pointer;
+}
+
+.grocery-table th.sortable:hover {
+  color: firebrick;
+}
+
+.delete-button:hover {
+  color: firebrick;
+}
+
+.edit-button:hover {
+  color: dodgerblue;
+}
+
+/* Added 4px margin to buttons */
+.delete-button,
+.edit-button {
+  padding: 4px 8px;
+  margin: 4px;
+}
+
+/* Right align the "Total" and "Discount" columns (2nd and 3rd columns) */
+.grocery-table td:nth-child(2),
+.grocery-table td:nth-child(3) {
+  text-align: right;
+}
+
+@keyframes flashAnimation {
+  0% { background-color: #ffff99; }
+  100% { background-color: transparent; }
+}
+
+.flash {
+  animation: 750ms flashAnimation 150ms ease-out;
+}
