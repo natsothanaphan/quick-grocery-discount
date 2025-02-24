@@ -1,121 +1,87 @@
 import React, { useState, useEffect } from 'react';
-import "./GroceryForm.css"; // Import the CSS file
+import './GroceryForm.css';
+import { formatDayForDatePicker } from '../utils.js';
 
-function GroceryForm({ onSubmit, selectedEntry, onCancelEdit }) {
-  // Compute today's date in YYYY-MM-DD format using Thailand timezone
-  const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Bangkok' });
+const GroceryForm = ({ selectedEntry, onSubmit, onCancelEdit }) => {
+  const today = formatDayForDatePicker(new Date());
   
-  // Initialize total and discount as formatted strings with 2 decimal points.
   const [date, setDate] = useState(today);
-  const [totalAmount, setTotalAmount] = useState('0.00');
-  const [discountAmount, setDiscountAmount] = useState('0.00');
+  const [totalAmount, setTotalAmount] = useState('');
+  const [discountAmount, setDiscountAmount] = useState('');
 
-  // Populate form fields when an entry is selected for editing, or reset when not.
   useEffect(() => {
     if (selectedEntry) {
-      setDate(selectedEntry.date || today);
-      setTotalAmount(
-        selectedEntry.totalAmount !== undefined && selectedEntry.totalAmount !== null
-          ? Number(selectedEntry.totalAmount).toFixed(2)
-          : '0.00'
-      );
-      setDiscountAmount(
-        selectedEntry.discountAmount !== undefined && selectedEntry.discountAmount !== null
-          ? Number(selectedEntry.discountAmount).toFixed(2)
-          : '0.00'
-      );
+      setDate(formatDayForDatePicker(selectedEntry.date));
+      setTotalAmount(Number(selectedEntry.totalAmount).toFixed(2));
+      setDiscountAmount(Number(selectedEntry.discountAmount).toFixed(2));
     } else {
       setDate(today);
-      setTotalAmount('0.00');
-      setDiscountAmount('0.00');
+      setTotalAmount('');
+      setDiscountAmount('');
     }
   }, [selectedEntry, today]);
 
-  // Generic onBlur handler to format numeric input to 2 decimal places and round to nearest 0.25
-  const handleBlur = (e, setFunction) => {
+  const handleBlur = (e, setter) => {
     const value = e.target.value;
-    let parsed = parseFloat(value);
-    if (!isNaN(parsed)) {
-      if (parsed < 0) {
-        parsed = 0;
-      }
-      // Round to the nearest 0.25
-      parsed = Math.round(parsed * 4) / 4;
-      setFunction(parsed.toFixed(2));
-    } else {
-      setFunction('0.00');
+    const parsed = parseFloat(value);
+    if (isNaN(parsed) || parsed < 0) {
+      setter('');
+      return;
     }
+    setter((Math.round(parsed * 4) / 4).toFixed(2)); // round to nearest 0.25
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Build the entry object, converting amounts to numeric values
     const entry = {
-      date,
-      totalAmount: parseFloat(totalAmount),
-      discountAmount: parseFloat(discountAmount),
+      date: date || today,
+      totalAmount: parseFloat(totalAmount || '0.00'),
+      discountAmount: parseFloat(discountAmount || '0.00'),
     };
     onSubmit(entry);
     
-    // After adding, reset the form fields to default values if not editing an existing entry.
     if (selectedEntry) {
-      // In edit mode, let the parent handle clearing the selected entry.
-      onCancelEdit && onCancelEdit();
+      onCancelEdit();
     } else {
       setDate(today);
-      setTotalAmount('0.00');
-      setDiscountAmount('0.00');
+      setTotalAmount('');
+      setDiscountAmount('');
     }
   };
+
+  const handleCancelEdit = () => onCancelEdit();
 
   return (
     <form className="grocery-form" onSubmit={handleSubmit}>
       <div>
-        <label>Date: </label>
-        <input 
-          type="date" 
-          lang="th-TH"
-          value={date} 
-          onChange={(e) => setDate(e.target.value)} 
+        <label htmlFor=".date">Date</label>
+        <input id=".date" type="date" value={date} 
+          onChange={(e) => setDate(e.target.value)} required />
+      </div>
+      <div>
+        <label htmlFor=".totalAmount">Total</label>
+        <input id=".totalAmount" type="number" value={totalAmount}
+          step="0.25" min="0.25" 
+          onChange={(e) => setTotalAmount(e.target.value)} onBlur={(e) => handleBlur(e, setTotalAmount)}
           required 
         />
       </div>
       <div>
-        <label>Total: </label>
-        <input 
-          type="number" 
-          step="0.25"
-          min="0.25" 
-          value={totalAmount}
-          onChange={(e) => setTotalAmount(e.target.value)} 
-          onBlur={(e) => handleBlur(e, setTotalAmount)}
-          required 
+        <label htmlFor=".discountAmount">Discount</label>
+        <input id=".discountAmount" type="number" value={discountAmount}
+          step="0.25" min="0"
+          onChange={(e) => setDiscountAmount(e.target.value)} onBlur={(e) => handleBlur(e, setDiscountAmount)} 
         />
       </div>
       <div>
-        <label>Discount: </label>
-        <input 
-          type="number" 
-          step="0.25" 
-          min="0"
-          value={discountAmount}
-          onChange={(e) => setDiscountAmount(e.target.value)} 
-          onBlur={(e) => handleBlur(e, setDiscountAmount)}
-          required 
-        />
-      </div>
-      <div>
-        <button type="submit" className="submit-button">
-          {selectedEntry ? 'Update' : 'Add'}
-        </button>
-        {selectedEntry && (
-          <button type="button" onClick={onCancelEdit} className="cancel-button">
-            Cancel
-          </button>
-        )}
+        {!selectedEntry && <button type="submit">Add</button>}
+        {selectedEntry && <>
+          <button type="submit" title="Save">💾</button>
+          <button onClick={handleCancelEdit} title="Cancel">❌</button>
+        </>}
       </div>
     </form>
   );
-}
+};
 
 export default GroceryForm;

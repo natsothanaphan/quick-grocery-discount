@@ -14,7 +14,7 @@ const db = getFirestore();
 const app = express();
 app.use(express.json());
 
-async function authenticate(req, res, next) {
+const authenticate = async (req, res, next) => {
   const authHeader = req.headers.authorization;
   if (!authHeader?.startsWith('Bearer ')) {
     return res.status(401).json({ error: 'Unauthorized: No token provided' });
@@ -70,7 +70,12 @@ app.get('/api/groceryEntries', async (req, res) => {
       .collection('groceryEntries').get();
     const entries = [];
     snapshot.forEach((doc) => {
-      entries.push({ id: doc.id, ...doc.data() });
+      const data = doc.data();
+      entries.push({ id: doc.id, ...data,
+        date: data.date.toDate(),
+        createdAt: data.createdAt.toDate(),
+        updatedAt: data.updatedAt.toDate(),
+      });
     });
     return res.json(entries);
   } catch (error) {
@@ -108,7 +113,12 @@ app.patch('/api/groceryEntries/:id', async (req, res) => {
     }
     await entryRef.update(updateData);
     const updatedDoc = await entryRef.get();
-    return res.json({ id: entryId, ...updatedDoc.data() });
+    const data = updatedDoc.data();
+    return res.json({ id: entryId, ...data,
+      date: data.date.toDate(),
+      createdAt: data.createdAt.toDate(),
+      updatedAt: data.updatedAt.toDate(),
+    });
   } catch (error) {
     logger.error('Error updating grocery entry:', error);
     return res.status(500).json({ error: 'Internal Server Error' });

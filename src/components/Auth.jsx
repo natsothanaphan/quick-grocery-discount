@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { auth } from '../firebase';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import './Auth.css';
+import { alertAndLogErr } from '../utils';
 
-export default function Auth({ onSignIn }) {
+const Auth = ({ onSignIn }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
@@ -13,7 +14,7 @@ export default function Auth({ onSignIn }) {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       onSignIn(userCredential.user);
     } catch (err) {
-      alert(err.message);
+      alertAndLogErr(err);
     }
   };
 
@@ -35,3 +36,5 @@ export default function Auth({ onSignIn }) {
     </>
   );
 };
+
+export default Auth;
