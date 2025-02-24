@@ -1,0 +1,28 @@
+.grocery-form {
+  margin: 8px 0;
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.grocery-form > div {
+  display: flex;
+  align-items: center;
+}
+
+.grocery-form > div > label {
+  width: 96px;
+  margin-right: 4px;
+  text-align: right;
+}
+
+.grocery-form > div > input {
+  flex: 1;
+}
+
+.grocery-form > div:last-child {
+  justify-content: flex-end;
+  gap: 2px;
+}

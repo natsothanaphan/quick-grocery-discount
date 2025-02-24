@@ -1,92 +1,88 @@
 import React, { useState, useEffect } from 'react';
-import GroceryForm from './GroceryForm';
-import GroceryTable from './GroceryTable';
-import { 
-  subscribeToGroceryEntries, 
-  addGroceryEntry, 
-  updateGroceryEntry, 
-  deleteGroceryEntry 
-} from './firestoreService';
+import Auth from './components/Auth';
+import GroceryForm from './components/GroceryForm';
+import GroceryTable from './components/GroceryTable';
 import './App.css';
+import api from './api.js';
+import { alertAndLogErr } from './utils.js';
 
-function App() {
-  // Initialize entries to an empty array and loading to true.
+const App = () => {
+  const [user, setUser] = useState(null);
+
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedEntry, setSelectedEntry] = useState(null);
-  const [highlightedEntryId, setHighlightedEntryId] = useState(null);
 
-  // Subscribe to Firestore and update both entries and loading state.
-  useEffect(() => {
-    const unsubscribe = subscribeToGroceryEntries((data) => {
-      setEntries(data);
-      setLoading(false);
-    });
-    return () => unsubscribe();
-  }, []);
+  const handleSignIn = (user) => setUser(user);
 
-  // Handler for form submission: add a new entry or update an existing one
-  const handleFormSubmit = async (entry) => {
+  const fetchEntries = async () => {
+    setLoading(true);
     try {
-      let idToHighlight;
-      if (selectedEntry) {
-        await updateGroceryEntry(selectedEntry.id, entry);
-        idToHighlight = selectedEntry.id;
-      } else {
-        // addGroceryEntry returns the ID of the newly created entry.
-        const newId = await addGroceryEntry(entry);
-        idToHighlight = newId;
-      }
-      setHighlightedEntryId(idToHighlight);
-      setSelectedEntry(null);
-
-      // Clear the highlight after a brief delay (e.g., 1.25 seconds)
-      setTimeout(() => {
-        setHighlightedEntryId(null);
-      }, 1250);
-    } catch (error) {
-      console.error('Error saving entry:', error);
+      const idToken = await user.getIdToken();
+      const data = await api.getGroceryEntries(idToken);
+      setEntries(data);
+    } catch (err) {
+      alertAndLogErr(err);
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Set the entry to be edited
-  const handleEdit = (entry) => {
-    setSelectedEntry(entry);
-  };
+  useEffect(() => {
+    if (user) {
+      fetchEntries();
+    }
+  }, [user]);
 
-  // Cancel edit mode
-  const handleCancelEdit = () => {
-    setSelectedEntry(null);
-  };
+  const handleFormSubmit = async (entry) => {
+    try {
+      const idToken = await user.getIdToken();
+      if (selectedEntry) {
+        await api.updateGroceryEntry(idToken, selectedEntry.id, entry);
 
-  // Delete the specified entry (with confirmation prompt)
-  const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this entry?')) {
-      try {
-        await deleteGroceryEntry(id);
-      } catch (error) {
-        console.error('Error deleting entry:', error);
+        setSelectedEntry(null);
+        fetchEntries();
+      } else {
+        await api.createGroceryEntry(idToken, entry);
+
+        fetchEntries();
       }
+    } catch (err) {
+      alertAndLogErr(err);
+    }
+  };
+  const handleCancelEdit = () => setSelectedEntry(null);
+
+  const handleEdit = (entry) => setSelectedEntry(entry);
+  const handleDelete = async (entryId) => {
+    if (!window.confirm('Are you sure you want to delete this entry?')) return;
+    try {
+      const idToken = await user.getIdToken();
+      await api.deleteGroceryEntry(idToken, entryId);
+
+      fetchEntries();
+      alert('Entry deleted');
+    } catch (err) {
+      alertAndLogErr(err);
     }
   };
 
   return (
     <div className="App">
-      <h1>Quick Grocery Discount</h1>
-      <GroceryForm 
-        onSubmit={handleFormSubmit} 
-        selectedEntry={selectedEntry}
-        onCancelEdit={handleCancelEdit}
-      />
-      <GroceryTable 
-        entries={entries} 
-        loading={loading}
-        onEdit={handleEdit} 
-        onDelete={handleDelete}
-        highlightedEntryId={highlightedEntryId}
-      />
+      {!user && <Auth onSignIn={handleSignIn} />}
+      {user && <>
+        <GroceryForm 
+          selectedEntry={selectedEntry}
+          onSubmit={handleFormSubmit} 
+          onCancelEdit={handleCancelEdit}
+        />
+        <GroceryTable 
+          entries={entries} loading={loading}
+          onEdit={handleEdit} onDelete={handleDelete}
+        />
+      </>}
     </div>
   );
-}
+};
 
 export default App;
