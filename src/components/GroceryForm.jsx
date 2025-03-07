@@ -74,7 +74,7 @@ const GroceryForm = ({ selectedEntry, onSubmit, onCancelEdit }) => {
         />
       </div>
       <div>
-        {!selectedEntry && <button type="submit">Add</button>}
+        {!selectedEntry && <button type="submit" title="Submit">🚀</button>}
         {selectedEntry && <>
           <button type="submit" title="Save">💾</button>
           <button onClick={handleCancelEdit} title="Cancel">❌</button>

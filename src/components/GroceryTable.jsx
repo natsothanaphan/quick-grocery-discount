@@ -34,6 +34,7 @@ const GroceryTable = ({ entries, loading, onEdit, onDelete }) => {
   const handleEdit = (entry) => onEdit(entry);
   const handleDelete = (entry) => onDelete(entry);
 
+  if (loading) return <p>Loading...</p>;
   return (
     <table className="grocery-table">
       <thead>
@@ -41,13 +42,12 @@ const GroceryTable = ({ entries, loading, onEdit, onDelete }) => {
           <th>Date</th>
           <th>Total</th>
           <th>Discount</th>
-          <th>Actions</th>
+          <th></th>
         </tr>
       </thead>
       <tbody>
-        {loading && <tr><td colSpan="4">Loading...</td></tr>}
-        {!loading && sortedEntries.length === 0 && <tr><td colSpan="4">No entries.</td></tr>}
-        {!loading && sortedEntries.length > 0 && sortedEntries.map((entry) => (
+        {sortedEntries.length === 0 && <tr><td colSpan="4">No entries.</td></tr>}
+        {sortedEntries.length > 0 && sortedEntries.map((entry) => (
             <tr key={entry.id}>
               <td>{formatDay(entry.date)}</td>
               <td>{Number(entry.totalAmount).toFixed(2)}</td>
